@@ -1,14 +1,14 @@
 import os
 from dotenv import load_dotenv
 from langchain_anthropic import ChatAnthropic
+from langchain_mistralai import ChatMistralAI
 
 load_dotenv()
 
-anthropic_api_key = os.environ.get("ANTHROPIC_API_KEY")
+anthropic_api_key = os.environ.get("ANTHROPIC_API_KEY", "")
+mistral_api_key = os.environ.get("MISTRAL_API_KEY", "")
 
-def get_anthropic_model(
-    model: str = "claude-3-5-haiku-latest"
-    ) -> ChatAnthropic:
+def get_anthropic_model(model: str = "claude-3-5-haiku-latest") -> ChatAnthropic:
     """
     Returns an Anthropic model to be used for further tasks.
 
@@ -41,4 +41,35 @@ def get_anthropic_model(
         timeout=None,
         max_retries=2,
         api_key=anthropic_api_key
+    )
+    
+def get_mistral_model(model: str = "mistral-small-latest") -> ChatMistralAI:
+    """
+    Returns an Mistral model to be used for further tasks.
+
+    Args:
+        model (str, optional): The name & version of the model from Mistral. Defaults to "mistral-small-latest".
+
+    Returns:
+        ChatAnthropic: Model to be used for further tasks
+    """
+
+    # Get list of available models from MistralAI - https://docs.mistral.ai/getting-started/models/models_overview/
+    list_of_available_models = [
+        "mistral-small-latest",
+        "pixtral-12b-2409",
+        "open-mistral-nemo",
+        "open-codestral-mamba"
+    ]
+    DEFAULT_MODEL = list_of_available_models[0]
+
+    if model not in list_of_available_models:
+        print(f"Model {model} not available. Defaulting to {DEFAULT_MODEL} instead.")
+    
+    return ChatMistralAI(
+        model=model if model in list_of_available_models else DEFAULT_MODEL,
+        temperature=0,
+        max_tokens=1024,
+        max_retries=2,
+        mistral_api_key=mistral_api_key
     )
