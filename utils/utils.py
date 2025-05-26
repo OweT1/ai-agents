@@ -130,8 +130,6 @@ def parse_docx(file_path: str) -> str:
     
     return '\n'.join(text)
 
-from pypdf import PdfReader
-
 def parse_pdf(file_path: str) -> str:
     """
     Parses the .pdf file at the input file_path
