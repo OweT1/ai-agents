@@ -2,6 +2,8 @@ import os
 from dotenv import load_dotenv
 from langchain_anthropic import ChatAnthropic
 from langchain_mistralai import ChatMistralAI
+from docx import Document
+from pypdf import PdfReader
 
 load_dotenv()
 
@@ -91,3 +93,63 @@ def validate_agent_type(agent_type: str) -> bool:
         print(f"{agent_type} currently not supported, please choose from {list_of_agent_types}")
         return False
     return True
+
+def parse_txt(file_path: str) -> str:
+    """
+    Parses the .txt file at the input file_path
+
+    Args:
+        file_path (str): File path to the desired .txt file
+
+    Returns:
+        str: File contents of the .txt file
+    """
+    
+    with open(file_path, "r") as f:
+        content = f.read()
+        
+    return content
+
+def parse_docx(file_path: str) -> str:
+    """
+    Parses the .docx file at the input file_path
+
+    Args:
+        file_path (str): File path to the desired .docx file
+
+    Returns:
+        str: Text where each paragraph is separated by a '\n' character
+    """
+    
+    document = Document(file_path)
+    text = []
+    
+    for paragraph in document.paragraphs:
+        cleaned_text = paragraph.text.replace("\xa0", "")
+        text.append(cleaned_text)
+    
+    return '\n'.join(text)
+
+from pypdf import PdfReader
+
+def parse_pdf(file_path: str) -> str:
+    """
+    Parses the .pdf file at the input file_path
+
+    Args:
+        file_path (str): File path to the desired .pdf file
+
+    Returns:
+        str: File contents of the .pdf file
+    """
+
+    reader = PdfReader(file_path)
+    num_pages = len(reader.pages)
+    text = []
+
+    for page_num in range(num_pages):
+        page = reader.pages[page_num]
+        extracted_text = page.extract_text()
+        text.append(extracted_text)
+    
+    return '\n\n'.join(text)

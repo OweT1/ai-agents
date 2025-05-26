@@ -1,4 +1,4 @@
-from utils.utils import validate_agent_type
+from utils.utils import validate_agent_type, parse_txt
 
 def get_agent_prompt(agent_type: str, candidate_details: str, company: str, job_details: str) -> str:
     """
@@ -17,8 +17,8 @@ def get_agent_prompt(agent_type: str, candidate_details: str, company: str, job_
     if not validate_agent_type(agent_type):
         return ""
     
-    with open(f"prompts/{agent_type}.txt", "r") as f:
-        prompt = f.read()
-
+    # Read in the prompt based on the agent_type
+    prompt = parse_txt(f"prompts/{agent_type}.txt")
     updated_prompt = prompt.format(company = company, candidate_details = candidate_details, job_details = job_details)
+    
     return updated_prompt

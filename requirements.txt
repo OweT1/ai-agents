@@ -4,3 +4,5 @@ langchain
 langchain_mistralai
 langgraph
 langgraph-supervisor
+python-docx
+pypdf
