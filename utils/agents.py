@@ -30,7 +30,8 @@ def get_custom_agent(model, agent_type: str, candidate_details: str, company: st
   
   if agent_type == 'supervisor':
     agent = create_supervisor(
-      agents,
+      agents=agents,
+      supervisor_name='supervisor_agent',
       model=model,
       prompt=prompt
     )
