@@ -2,6 +2,8 @@ typing_extensions==4.11.0
 langchain
 # langchain-anthropic
 langchain_mistralai
+langchain-ollama
+ollama
 langgraph
 langgraph-supervisor
 python-docx
