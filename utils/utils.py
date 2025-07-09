@@ -1,49 +1,54 @@
 import os
 from dotenv import load_dotenv
-from langchain_anthropic import ChatAnthropic
+# from langchain_anthropic import ChatAnthropic
 from langchain_mistralai import ChatMistralAI
+from langchain_ollama import ChatOllama
+import subprocess
 from docx import Document
 from pypdf import PdfReader
+from langchain.agents import AgentExecutor
+from langchain.prompts import HumanMessagePromptTemplate
 
 load_dotenv()
 
 anthropic_api_key = os.environ.get("ANTHROPIC_API_KEY", "")
 mistral_api_key = os.environ.get("MISTRAL_API_KEY", "")
 
-def get_anthropic_model(model: str = "claude-3-5-haiku-latest") -> ChatAnthropic:
-    """
-    Returns an Anthropic model to be used for further tasks.
+# def get_anthropic_model(model: str = "claude-3-5-haiku-latest") -> ChatAnthropic:
+#     """
+#     Returns an Anthropic model to be used for further tasks.
 
-    Args:
-        model (str, optional): The name & version of the model from Anthropic. Defaults to "claude-3-5-haiku-latest".
+#     Args:
+#         model (str, optional): The name & version of the model from Anthropic. Defaults to "claude-3-5-haiku-latest".
 
-    Returns:
-        ChatAnthropic: Model to be used for further tasks
-    """
+#     Returns:
+#         ChatAnthropic: Model to be used for further tasks
+#     """
 
-    # Get list of available models from Anthropic
-    list_of_available_models = [
-        "claude-3-5-haiku-latest",
-        "claude-3-7-sonnet-latest", 
-        "claude-3-5-sonnet-latest", 
-        "claude-3-5-sonnet-20240620", 
-        "claude-3-opus-latest", 
-        "claude-3-sonnet-20240229", 
-        "claude-3-haiku-20240307"
-    ]
-    DEFAULT_MODEL = list_of_available_models[0]
+#     # Get list of available models from Anthropic
+#     list_of_available_models = [
+#         "claude-3-5-haiku-latest",
+#         "claude-3-7-sonnet-latest", 
+#         "claude-3-5-sonnet-latest", 
+#         "claude-3-5-sonnet-20240620", 
+#         "claude-3-opus-latest", 
+#         "claude-3-sonnet-20240229", 
+#         "claude-3-haiku-20240307"
+#     ]
+#     DEFAULT_MODEL = list_of_available_models[0]
 
-    if model not in list_of_available_models:
-        print(f"Model {model} not available. Defaulting to {DEFAULT_MODEL} instead.")
+#     if model not in list_of_available_models:
+#         print(f"Model {model} not available. Defaulting to {DEFAULT_MODEL} instead.")
+#     else:
+#         print(f"Using model {model}...")
     
-    return ChatAnthropic(
-        model=model if model in list_of_available_models else DEFAULT_MODEL,
-        temperature=0,
-        max_tokens=1024,
-        timeout=None,
-        max_retries=2,
-        api_key=anthropic_api_key
-    )
+#     return ChatAnthropic(
+#         model=model if model in list_of_available_models else DEFAULT_MODEL,
+#         temperature=0,
+#         timeout=None,
+#         max_retries=2,
+#         api_key=anthropic_api_key
+#     )
     
 def get_mistral_model(model: str = "mistral-small-latest") -> ChatMistralAI:
     """
@@ -53,7 +58,7 @@ def get_mistral_model(model: str = "mistral-small-latest") -> ChatMistralAI:
         model (str, optional): The name & version of the model from Mistral. Defaults to "mistral-small-latest".
 
     Returns:
-        ChatAnthropic: Model to be used for further tasks
+        ChatMistralAI: Model to be used for further tasks
     """
 
     # Get list of available models from MistralAI - https://docs.mistral.ai/getting-started/models/models_overview/
@@ -66,14 +71,65 @@ def get_mistral_model(model: str = "mistral-small-latest") -> ChatMistralAI:
     DEFAULT_MODEL = list_of_available_models[0]
 
     if model not in list_of_available_models:
-        print(f"Model {model} not available. Defaulting to {DEFAULT_MODEL} instead.")
+        print(f"Model {model} not available. Defaulting to {DEFAULT_MODEL} instead...")
+    else:
+        print(f"Using model {model}...")
     
     return ChatMistralAI(
         model=model if model in list_of_available_models else DEFAULT_MODEL,
         temperature=0,
-        max_tokens=1024,
         max_retries=2,
         mistral_api_key=mistral_api_key
+    )
+
+def get_available_ollama_models():
+    try:
+        result = subprocess.run(['ollama', 'list'], capture_output=True, text=True, check=True)
+        lines = result.stdout.strip().split('\n')
+        header = lines[0]
+        header_parts = header.split()
+        model_details = lines[1:]
+        
+        models = []
+        for model_detail in model_details:
+            parts = model_detail.split('   ')
+            if len(parts) == len(header_parts):
+              models.append({
+                  header_parts[i]: parts[i]
+                  for i in range(len(parts))
+              })
+        return models
+    except subprocess.CalledProcessError as e:
+        print(f"Error executing ollama list: {e}")
+        return None
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+        return None
+
+def get_ollama_model(model: str = "mistral:latest") -> ChatOllama:
+    """
+    Returns a downloaded model (via Ollama) to be used for further tasks.
+
+    Args:
+        model (str, optional): The name & version of the model from Mistral. Defaults to "mistral-small-latest".
+
+    Returns:
+        ChatOllama: Model to be used for further tasks
+    """
+    
+    list_of_available_models = [model['NAME'] for model in get_available_ollama_models()]
+    
+    DEFAULT_MODEL = list_of_available_models[0]
+
+    if model not in list_of_available_models:
+        print(f"Model {model} not available. Defaulting to {DEFAULT_MODEL} instead...")
+    else:
+        print(f"Using model {model}...")
+    
+    return ChatOllama(
+        model=model if model in list_of_available_models else DEFAULT_MODEL,
+        temperature=0,
+        max_retries=2,
     )
     
 def validate_agent_type(agent_type: str) -> bool:
@@ -87,7 +143,7 @@ def validate_agent_type(agent_type: str) -> bool:
     bool: True if currently supported, else False
     """
 
-    list_of_agent_types = ['profile', 'skills', 'experience', 'supervisor']
+    list_of_agent_types = ['candidate', 'profile', 'skills', 'experience', 'supervisor']
 
     if agent_type not in list_of_agent_types:
         print(f"{agent_type} currently not supported, please choose from {list_of_agent_types}")

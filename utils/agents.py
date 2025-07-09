@@ -3,7 +3,7 @@ from langgraph_supervisor import create_supervisor
 from prompts.prompts import get_agent_prompt
 from utils.utils import validate_agent_type
 
-def get_custom_agent(model, agent_type: str, candidate_details: str, company: str, job_details: str, agents = []):
+def get_custom_agent(model, agent_type: str, candidate_details: str, company: str, job_details: str, tools = [], agents = []):
   """
   Creates the agent based on the agent_type, with the relevant inputs.
 
@@ -40,7 +40,7 @@ def get_custom_agent(model, agent_type: str, candidate_details: str, company: st
       model=model,
       name=f"{agent_type}_agent",
       prompt=prompt,
-      tools=[]
+      tools=tools
     )
   
   return agent
