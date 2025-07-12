@@ -1,4 +1,5 @@
-typing_extensions==4.11.0
+# typing_extensions==4.11.0
+dotenv
 langchain
 # langchain-anthropic
 langchain_mistralai
@@ -8,3 +9,7 @@ langgraph
 langgraph-supervisor
 python-docx
 pypdf
+gradio
+asyncio
+crawl4ai
+pydantic
