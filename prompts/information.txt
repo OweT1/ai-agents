@@ -1,0 +1,25 @@
+You are an expert at extracting information from text.
+
+<task>
+Your main task is to retrieve 2 main details from the <webpage_content>: Company Details and Job Details. 
+
+Company Details: Details regarding the Company, including but not limited to the industry or the work culture etc.
+Job Details: Details regarding the job, including but not limited to the job title, skills required, qualifications required etc.
+
+You should include as much information as possible. You are to output according to the <output_instructions>.
+</task>
+
+<webpage_content>
+{webpage_content}
+</webpage_content>
+
+<output_instructions>
+You are to strictly output 2 items: Company Details and Job Details. You should output in the following JSON format:
+
+{{
+  Company_Details: str
+  Job_Details: str
+}}
+</output_instructions>
+
+YOUR RESPONSE:
