@@ -1,9 +1,12 @@
 from langgraph.prebuilt import create_react_agent
 from langgraph_supervisor import create_supervisor
-from prompts.prompts import get_agent_prompt
-from utils.utils import validate_agent_type
 
-def get_custom_agent(model, agent_type: str, candidate_details: str, company: str, job_details: str, tools = [], agents = []):
+from utils.utils import (
+   get_agent_prompt,
+   validate_agent_type
+)
+
+def get_custom_agent(model, agent_type: str, tools = [], agents = [], **kwargs):
   """
   Creates the agent based on the agent_type, with the relevant inputs.
 
@@ -21,19 +24,15 @@ def get_custom_agent(model, agent_type: str, candidate_details: str, company: st
   if not validate_agent_type(agent_type):
     return
   
-  prompt = get_agent_prompt(
-    agent_type=agent_type,
-    candidate_details=candidate_details,
-    company=company,
-    job_details=job_details
-  )
+  prompt = get_agent_prompt(agent_type=agent_type).format(**kwargs)
   
   if agent_type == 'supervisor':
     agent = create_supervisor(
       agents=agents,
       supervisor_name='supervisor_agent',
       model=model,
-      prompt=prompt
+      prompt=prompt,
+      output_mode="full_history"
     )
   else:
     agent = create_react_agent(

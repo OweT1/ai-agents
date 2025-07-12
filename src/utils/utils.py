@@ -8,6 +8,8 @@ from docx import Document
 from pypdf import PdfReader
 from langchain.agents import AgentExecutor
 from langchain.prompts import HumanMessagePromptTemplate
+import re
+import json
 
 load_dotenv()
 
@@ -143,12 +145,33 @@ def validate_agent_type(agent_type: str) -> bool:
     bool: True if currently supported, else False
     """
 
-    list_of_agent_types = ['candidate', 'profile', 'skills', 'experience', 'supervisor']
+    list_of_agent_types = ['candidate', 'profile', 'skills', 'experience', 'supervisor', 'information', 'overall_evaluator']
 
     if agent_type not in list_of_agent_types:
         print(f"{agent_type} currently not supported, please choose from {list_of_agent_types}")
         return False
     return True
+
+def get_agent_prompt(agent_type: str) -> str:
+    """
+    Retrieves the relevant prompt based on the agent_type
+
+    Args:
+        agent_type (str): Currently only supporting ['profile', 'skill', 'experience', 'supervisor'] types
+        candidate_details (str): Describes the candidate's experiences etc
+        company (str): Name of company
+        job_details (str): Describes the relevant portion of the job details, depending on the agent_type
+
+    Returns:
+        str: Unique prompt based on the agent_type, filled with the relevant details.
+    """
+
+    if not validate_agent_type(agent_type):
+        return ""
+    
+    # Read in the prompt based on the agent_type
+    prompt = parse_txt(f"prompts/{agent_type}.txt")
+    return prompt
 
 def parse_txt(file_path: str) -> str:
     """
@@ -207,3 +230,34 @@ def parse_pdf(file_path: str) -> str:
         text.append(extracted_text)
     
     return '\n\n'.join(text)
+
+def extract_json(text):
+    try:
+        match = re.search(r"```json\s*(\{.*?\})\s*```", text, re.DOTALL)
+        if not match:
+            raise ValueError("No valid JSON block found in triple backticks.")
+        json_str = match.group(1)
+        return json.loads(json_str)
+    except json.JSONDecodeError as e:
+        raise ValueError(f"Failed to decode JSON: {e}")
+    except Exception as e:
+        raise ValueError(f"Error extracting JSON: {e}")
+
+def collapse_list_of_messages_to_str(list_of_messages) -> str:
+  output = ""
+  for message in list_of_messages:
+    agent = message[0]
+    content = message[1].content
+    output += f"""
+    Agent: {agent}
+    Score: {content}
+    \n
+    """
+  return output
+
+def collapse_list_of_dict_to_dict(list_of_dict: list[dict[str, str]]) -> dict[str, str]:
+  output = {}
+  for item in list_of_dict:
+    for key, value in item.items():
+      output[key] = value
+  return output
