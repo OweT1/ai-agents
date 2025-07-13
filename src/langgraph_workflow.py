@@ -1,6 +1,5 @@
 import asyncio
 from pydantic import BaseModel
-import operator
 from typing import Annotated, Sequence
 from langgraph.graph import StateGraph, END
 
@@ -8,17 +7,22 @@ from utils.tools import web_crawl
 from utils.utils import get_mistral_model, extract_json
 from utils.agents import get_custom_agent
 
-def identity(a, b):
+def merge_last(a, b):
   return b
 
+def merge_dict(a, b):
+  for key, val in b.items():
+    a[key] = val
+  return a
+
 class EvaluationState(BaseModel):
-  candidate_details: Annotated[str, identity]
-  company_details: Annotated[str, identity]
-  job_details: Annotated[str, identity]
-  evaluations: Annotated[Sequence[dict[str, str]], operator.add]
+  candidate_details: Annotated[str, merge_last]
+  company_details: Annotated[str, merge_last]
+  job_details: Annotated[str, merge_last]
+  evaluations: Annotated[dict[str, str], merge_dict]
+  improvement: Annotated[str, merge_last]
 
 def information_node(state: EvaluationState, job_url: str, model): 
-  # job_url = "https://lifeattiktok.com/search/7408439668049742106"
   webpage_content = asyncio.run(web_crawl(job_url))
   
   information_agent = get_custom_agent(
@@ -51,7 +55,7 @@ def experience_node(state: EvaluationState, model):
   result_extracted = result['messages'][-1].content
   
   updated_state = state.dict()
-  updated_state["evaluations"] = state.evaluations + [{"experience_evaluation": result_extracted}]
+  updated_state["evaluations"]["experience_evaluation"] = result_extracted
   return EvaluationState(**updated_state)
   
 def profile_node(state: EvaluationState, model):
@@ -67,7 +71,7 @@ def profile_node(state: EvaluationState, model):
   result_extracted = result['messages'][-1].content
   
   updated_state = state.dict()
-  updated_state["evaluations"] = state.evaluations + [{"profile_evaluation": result_extracted}]
+  updated_state["evaluations"]["profile_evaluation"] = result_extracted
   return EvaluationState(**updated_state)
   
 def skills_node(state: EvaluationState, model):
@@ -83,7 +87,7 @@ def skills_node(state: EvaluationState, model):
   result_extracted = result['messages'][-1].content
   
   updated_state = state.dict()
-  updated_state["evaluations"] = state.evaluations + [{"skills_evaluation": result_extracted}]
+  updated_state["evaluations"]["skills_evaluation"] = result_extracted
   return EvaluationState(**updated_state)
   
 def evaluator_node(state: EvaluationState, model):
@@ -100,10 +104,25 @@ def evaluator_node(state: EvaluationState, model):
   result_extracted = result['messages'][-1].content
   
   updated_state = state.dict()
-  updated_state["evaluations"] = state.evaluations + [{"final_evaluation": result_extracted}]
+  updated_state["evaluations"]["final_evaluation"] = result_extracted
   return EvaluationState(**updated_state)
+
+def improvement_node(state: EvaluationState, model):
+  improvement_agent = get_custom_agent(
+    model=model,
+    agent_type="improvement",
+    candidate_details=state.candidate_details,
+    company_details=state.company_details,
+    job_details=state.job_details,
+    evaluations=state.evaluations
+  )
+
+  result = improvement_agent.invoke(state.dict())
+  result_extracted = result['messages'][-1].content
   
-  # return {"final_evaluation": result_extracted}
+  updated_state = state.dict()
+  updated_state["improvement"] = result_extracted
+  return EvaluationState(**updated_state)
   
 def get_agent_workflow(candidate_profile, job_url):
   model = get_mistral_model()
@@ -115,6 +134,7 @@ def get_agent_workflow(candidate_profile, job_url):
   workflow.add_node("experience", lambda state: experience_node(state, model))
   workflow.add_node("profile", lambda state: profile_node(state, model))
   workflow.add_node("evaluator", lambda state: evaluator_node(state, model))
+  workflow.add_node("improvement", lambda state: improvement_node(state, model))
   
   # Define the edges/connections
   workflow.set_entry_point("information")
@@ -124,9 +144,11 @@ def get_agent_workflow(candidate_profile, job_url):
   workflow.add_edge("information", "profile")
   
   workflow.add_edge(["skills", "experience", "profile"], "evaluator")
-  workflow.add_edge("evaluator", END)
+  workflow.add_edge("evaluator", "improvement")
+  workflow.add_edge("improvement", END)
   
   app = workflow.compile()
+  app.get_graph().draw_mermaid_png(output_file_path="assets/workflow.png")
   return app
 
 

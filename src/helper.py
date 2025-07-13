@@ -33,7 +33,9 @@ def call_evaluation(candidate_profile, job_url):
   result = app.invoke({
     "candidate_details": candidate_profile,
     "company_details": "",
-    "job_details": ""
+    "job_details": "",
+    "evaluations": {},
+    "improvement": ""
   })
   return result
   

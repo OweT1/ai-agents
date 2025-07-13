@@ -145,7 +145,7 @@ def validate_agent_type(agent_type: str) -> bool:
     bool: True if currently supported, else False
     """
 
-    list_of_agent_types = ['candidate', 'profile', 'skills', 'experience', 'supervisor', 'information', 'overall_evaluator']
+    list_of_agent_types = ['candidate', 'profile', 'skills', 'experience', 'supervisor', 'information', 'overall_evaluator', 'improvement']
 
     if agent_type not in list_of_agent_types:
         print(f"{agent_type} currently not supported, please choose from {list_of_agent_types}")
