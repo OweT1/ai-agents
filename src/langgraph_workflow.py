@@ -20,25 +20,29 @@ class EvaluationState(BaseModel):
   company_details: Annotated[str, merge_last]
   job_details: Annotated[str, merge_last]
   evaluations: Annotated[dict[str, str], merge_dict]
-  improvement: Annotated[str, merge_last]
+  improvements: Annotated[str, merge_last]
 
-def information_node(state: EvaluationState, job_url: str, model): 
-  webpage_content = asyncio.run(web_crawl(job_url))
-  
-  information_agent = get_custom_agent(
-    model=model,
-    agent_type="information",
-    webpage_content=webpage_content
-  )
-  
-  result = information_agent.invoke(
-    {"content": f"Use the following webpage content to extract company and job details. Webpage Content: {webpage_content}"})
-  result_json = extract_json(result['messages'][-1].content)
-  print(result_json)
+def information_node(state: EvaluationState, job_url: str, company_details: str, job_details: str, company_info_input_type: str, model):
+  if company_info_input_type == "URL":
+    webpage_content = asyncio.run(web_crawl(job_url))
+    
+    information_agent = get_custom_agent(
+      model=model,
+      agent_type="information",
+      webpage_content=webpage_content
+    )
+    
+    result = information_agent.invoke(
+      {"content": f"Use the following webpage content to extract company and job details. Webpage Content: {webpage_content}"})
+    result_json = extract_json(result['messages'][-1].content)
+    print(result_json)
+    
+    company_details = result_json['Company_Details']
+    job_details = result_json['Job_Details']
   
   updated_state = state.dict()
-  updated_state["company_details"] = result_json['Company_Details']
-  updated_state["job_details"] = result_json['Job_Details']
+  updated_state["company_details"] = company_details
+  updated_state["job_details"] = job_details
   
   return EvaluationState(**updated_state)
   
@@ -121,15 +125,15 @@ def improvement_node(state: EvaluationState, model):
   result_extracted = result['messages'][-1].content
   
   updated_state = state.dict()
-  updated_state["improvement"] = result_extracted
+  updated_state["improvements"] = result_extracted
   return EvaluationState(**updated_state)
   
-def get_agent_workflow(candidate_profile, job_url):
+def get_agent_workflow(candidate_profile, job_url, company_details, job_details, company_info_input_type):
   model = get_mistral_model()
   workflow = StateGraph(EvaluationState)
   
   # Define the nodes
-  workflow.add_node("information", lambda state: information_node(state, job_url, model))
+  workflow.add_node("information", lambda state: information_node(state, job_url, company_details, job_details, company_info_input_type, model))
   workflow.add_node("skills", lambda state: skills_node(state, model))
   workflow.add_node("experience", lambda state: experience_node(state, model))
   workflow.add_node("profile", lambda state: profile_node(state, model))
