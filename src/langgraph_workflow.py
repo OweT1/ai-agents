@@ -190,7 +190,6 @@ def improvement_node(state: EvaluationState, model):
   })
   result_extracted = result['messages'][-1].content
   final_result_extracted = result_extracted[-1]['text'] if isinstance(result_extracted, list) else result_extracted
-  print(result_extracted)
   print(final_result_extracted)
   updated_state = state.dict()
   updated_state["messages"].append({
