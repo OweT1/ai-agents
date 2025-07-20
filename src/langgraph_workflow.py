@@ -29,19 +29,11 @@ def extract_remarks(text):
   return matches[-1].strip() if matches else None
   
 def extract_curr_improvement(text):
-  match = re.search(
-      r"For this job:\s*(.*?)(?:\nFor jobs of similar nature:|\Z)",
-      text,
-      re.DOTALL
-  )
+  match = re.search(r"<improvements_for_current_job>\s*(.*?)\s*</improvements_for_current_job>", text, re.DOTALL)
   return match.group(1).strip() if match else None
 
 def extract_similar_improvement(text):
-  match = re.search(
-        r"For jobs of similar nature:\s*(.*)",
-        text,
-        re.DOTALL
-  )
+  match = re.search(r"<improvements_for_similar_jobs>\s*(.*?)\s*</improvements_for_similar_jobs>", text, re.DOTALL) 
   return match.group(1).strip() if match else None
 
 def merge_last(a, b):
@@ -51,7 +43,6 @@ def merge_dict(a, b):
   for key, val in b.items():
     a[key] = val
   return a
-
 # --- Pydantic Models --- #
 class EvaluationState(BaseModel):
   candidate_details: Annotated[str, merge_last]
@@ -199,6 +190,7 @@ def improvement_node(state: EvaluationState, model):
   })
   result_extracted = result['messages'][-1].content
   final_result_extracted = result_extracted[-1]['text'] if isinstance(result_extracted, list) else result_extracted
+  print(result_extracted)
   print(final_result_extracted)
   updated_state = state.dict()
   updated_state["messages"].append({

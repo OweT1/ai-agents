@@ -48,8 +48,8 @@ You should output in the following format:
 <output>
 ```json
 {{
-  "Score": 1-10, # Should output a score from 1 to 10 enclosed in double quotes (""), with a maximum of 1 decimal place
-  "Remarks": .... # Your remarks should not be longer than 7 lines.
+  "Score": str, # Should output a score from 1 to 10 enclosed in double quotes (""), with a maximum of 1 decimal place
+  "Remarks": str # Your remarks should not be longer than 7 lines.
 }}
 ```
 </output>

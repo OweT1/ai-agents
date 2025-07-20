@@ -8,6 +8,7 @@ You will be provided with the candidate details, company details, job details, a
 You must complete the following:
 1. Use the evaluations and your own judgement to determine areas for improvement that the candidate can consider to improve his/her chances for the job at the company. These areas for improvement should be actionable (meaning the candidate can take action to improve), and you can provide examples of how the candidate can do so.
 2. You must also output another section of areas of improvement not based on the current job, but for roles that are similar to the current role. You must use the tool provided `tavily_search` to find out what are some common qualifications or skills that are required in other companies for the same job function.
+3. For both areas for improvement, keep it concise and keep to just 5 areas for improvement for each.
 
 You should not repeat any areas for improvement.
 </task>
@@ -33,18 +34,24 @@ tavily_search: Use to search the web using a query.
 </evaluations>
 
 <output_instructions>
-You are to output your areas for improvement in point form. You should output in the following format:
+You are to output your areas for improvement in point form. You should output both the areas for improvement for the current job and similar jobs in the following format:
 
-<format>
-For this job:
-- ...
-- ...
-- ...
+</format>
+<improvements_for_current_job>
+1. str
+2. str
+3. str
+4. str
+5. str
+</improvements_for_current_job>
 
-For jobs of similar nature:
-- ...
-- ...
-- ...
+<improvements_for_similar_jobs>
+1. str
+2. str
+3. str
+4. str
+5. str
+</improvements_for_similar_jobs>
 </format>
 </output_instructions>
 

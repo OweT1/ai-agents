@@ -45,10 +45,10 @@ def get_improvement_textbox():
   return gr.Textbox(label="📈 Areas for Improvement", lines=5, interactive=False)
 
 def get_current_improvement_textbox():
-  return gr.Textbox(label="🛠️ Areas for Improvement for this Job", lines=5, interactive=False)
+  return gr.Textbox(label="🛠️ Areas for Improvement for this job", lines=5, interactive=False)
 
 def get_similar_improvement_textbox():
-  return gr.Textbox(label="🚀 Areas for Improvement for similar Jobs", lines=5, interactive=False)
+  return gr.Textbox(label="🚀 Areas for Improvement for similar jobs", lines=5, interactive=False)
 
 def change_company_info_input(choice):
   if choice == "Text":
