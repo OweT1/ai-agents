@@ -52,7 +52,7 @@ mistral_api_key = os.environ.get("MISTRAL_API_KEY", "")
 #         api_key=anthropic_api_key
 #     )
     
-def get_mistral_model(model: str = "mistral-small-latest") -> ChatMistralAI:
+def get_mistral_model(model: str = "mistral-large-latest") -> ChatMistralAI:
     """
     Returns an Mistral model to be used for further tasks.
 
@@ -65,6 +65,8 @@ def get_mistral_model(model: str = "mistral-small-latest") -> ChatMistralAI:
 
     # Get list of available models from MistralAI - https://docs.mistral.ai/getting-started/models/models_overview/
     list_of_available_models = [
+        "magistral-small-latest",
+        "mistral-large-latest",
         "mistral-small-latest",
         "pixtral-12b-2409",
         "open-mistral-nemo",

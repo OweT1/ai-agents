@@ -23,7 +23,6 @@ def get_custom_agent(model, agent_type: str, tools = [], agents = [], **kwargs):
   
   if not validate_agent_type(agent_type):
     return
-  
   prompt = get_agent_prompt(agent_type=agent_type).format(**kwargs)
   
   if agent_type == 'supervisor':
@@ -41,5 +40,5 @@ def get_custom_agent(model, agent_type: str, tools = [], agents = [], **kwargs):
       prompt=prompt,
       tools=tools
     )
-  
+     
   return agent

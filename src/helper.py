@@ -9,34 +9,46 @@ from langgraph_workflow import get_agent_workflow
 
 # --- Gradio Components --- #
 def get_candidate_file_input():
-  return gr.File(label="Resume", file_types=['.txt', '.pdf', '.docx'])
+  return gr.File(label="🧑🏻‍💼 Resume", file_types=['.txt', '.pdf', '.docx'])
   
 def get_company_info_input_radio():
-  return gr.Radio(label="Company Info Input Type", choices = ["URL", "Text"], value="URL")  
+  return gr.Radio(label="⌨️ Company Info Input Type", choices = ["URL", "Text"], value="URL")  
   
 def get_job_listing_url_textbox(visible):
   return gr.Textbox(label="🔗 Job Listing URL", placeholder="e.g. https://lifeattiktok.com/...", visible=visible)
 
 def get_company_details_textbox(visible):
-  return gr.Textbox(label="Company Details", placeholder="Tiktok is a leading...", lines=5, visible=visible)
+  return gr.Textbox(label="🏢 Company Details", placeholder="Tiktok is a leading...", lines=5, visible=visible)
 
 def get_job_details_textbox(visible):
-  return gr.Textbox(label="Job Details", placeholder="You will work as a Data Scientist Intern...", lines=5, visible=visible)
+  return gr.Textbox(label=" 💼 Job Details", placeholder="You will work as a Data Scientist Intern...", lines=5, visible=visible)
 
 def get_submit_button():
   return gr.Button("🔍 Run Evaluation")
 
 def get_app_workflow():
-  return gr.Image(label="App Workflow", value=Image.open('assets/workflow.png'), type='pil')
+  return gr.Image(label="⚙️ App Workflow", value=Image.open('assets/workflow.png'), type='pil', show_download_button=False)
 
 def get_status_textbox():
-  return gr.Textbox(label="Status", interactive=False)
+  return gr.Textbox(label="🌐 Status", interactive=False)
 
 def get_evaluation_textbox():
   return gr.Textbox(label="✅ Evaluation", lines=5, interactive=False)
 
+def get_evaluation_score_textbox():
+  return gr.Textbox(label="💯 Evaluation Score (out of 10)", lines=1, interactive=False)
+
+def get_evaluation_remarks_textbox():
+  return gr.Textbox(label="💬 Evaluation Remarks", lines=5, interactive=False)
+
 def get_improvement_textbox():
   return gr.Textbox(label="📈 Areas for Improvement", lines=5, interactive=False)
+
+def get_current_improvement_textbox():
+  return gr.Textbox(label="🛠️ Areas for Improvement for this Job", lines=5, interactive=False)
+
+def get_similar_improvement_textbox():
+  return gr.Textbox(label="🚀 Areas for Improvement for similar Jobs", lines=5, interactive=False)
 
 def change_company_info_input(choice):
   if choice == "Text":
@@ -64,24 +76,29 @@ def call_evaluation(candidate_profile, job_url, company_details, job_details, co
     "company_details": "",
     "job_details": "",
     "evaluations": {},
-    "improvements": ""
+    "improvements": {},
+    "messages": []
   })
   return result
 
 def generate_response(candidate_file, job_url, company_details, job_details, company_info_input_type):
   candidate_profile = parse_data_file(candidate_file)
-  yield "🟡 Processing with LangGraph...", "", ""
+  yield "🟡 Processing with LangGraph...", "", "", "", ""
   response = call_evaluation(candidate_profile, job_url, company_details, job_details, company_info_input_type)
   response_evaluations = response["evaluations"]
+  response_improvements = response["improvements"]
   
   # Extract out evaluation components
   experience_evaluation = response_evaluations["experience_evaluation"]
   profile_evaluation = response_evaluations["profile_evaluation"]
   skills_evaluation = response_evaluations["skills_evaluation"]
   final_evaluation = response_evaluations["final_evaluation"]
-  improvements = response["improvements"]
+  final_evaluation_score = response_evaluations["final_evaluation_score"]
+  final_evaluation_remarks = response_evaluations["final_evaluation_remarks"]
+  current_improvements = response_improvements["current"]
+  similar_improvements = response_improvements["similar"]
   
-  yield "✅ Evaluation complete!", final_evaluation, improvements
+  yield "✅ Evaluation complete!", final_evaluation_score, final_evaluation_remarks, current_improvements, similar_improvements
 
 # --- Other helper Functions --- #
 def parse_data_file(data_file_path):

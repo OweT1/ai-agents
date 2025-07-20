@@ -11,8 +11,11 @@ from helper import (
   get_submit_button,
   get_app_workflow,
   get_status_textbox,
-  get_evaluation_textbox,
+  get_evaluation_score_textbox,
+  get_evaluation_remarks_textbox,
   get_improvement_textbox,
+  get_current_improvement_textbox,
+  get_similar_improvement_textbox,
   change_company_info_input,
   generate_response
 )
@@ -34,8 +37,10 @@ with gr.Blocks(title="LangGraph Candidate Evaluator") as app:
 
     with gr.Column():
       status = get_status_textbox()
-      eval_output = get_evaluation_textbox()
-      improve_output = get_improvement_textbox()
+      eval_score_output = get_evaluation_score_textbox()
+      eval_remarks_output = get_evaluation_remarks_textbox()
+      curr_improve_output = get_current_improvement_textbox()
+      similar_improve_output = get_similar_improvement_textbox()
   
   # Radio change
   company_info_input_type.change(fn=change_company_info_input, inputs=company_info_input_type, outputs=[job_url_input, company_details, job_details])
@@ -43,7 +48,7 @@ with gr.Blocks(title="LangGraph Candidate Evaluator") as app:
   submit_btn.click(
     fn=generate_response,
     inputs=[candidate_input, job_url_input, company_details, job_details, company_info_input_type],
-    outputs=[status, eval_output, improve_output],
+    outputs=[status, eval_score_output, eval_remarks_output, curr_improve_output, similar_improve_output],
     show_progress=True
   )
 

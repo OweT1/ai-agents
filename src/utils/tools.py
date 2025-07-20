@@ -1,30 +1,18 @@
 import os
 from langchain.tools import tool
+from dotenv import load_dotenv
 import asyncio
+
 from crawl4ai import *
 from crawl4ai.markdown_generation_strategy import DefaultMarkdownGenerator
 from crawl4ai.async_configs import BrowserConfig, CrawlerRunConfig, CacheMode
 
-@tool
-def get_list_of_candidate_data_files():
-  """
-  Returns the list of candidate data files.
+from tavily import TavilyClient
 
-  Returns:
-      List: list of candidate data files
-  """
-  return os.listdir('data/candidates')
+load_dotenv()
+TAVILY_API_KEY = os.environ.get("TAVILY_API_KEY")
 
-@tool
-def get_list_of_company_job_data_files():
-  """
-  Returns the list of candidate data files.
-
-  Returns:
-      List: list of candidate data files
-  """
-  return os.listdir('data/companies')
-
+# @tool
 async def web_crawl(web_url: str) -> str:
   """
   Crawls the web content in the web_url
@@ -67,3 +55,23 @@ async def web_crawl(web_url: str) -> str:
     )
     
     return result.markdown
+
+@tool
+def tavily_search(query: str) -> str:
+  """
+  Performs a search using the query to get relevant information from the web.
+
+  Args:
+      query (str): Query input by user
+
+  Returns:
+      str: Information on the web that is relevant to the query.
+      
+  The information returned should be used to craft a meaningful and informative response to the user. 
+  """
+  
+  print('performing tavily search on', query)
+  tavily_client = TavilyClient(api_key=TAVILY_API_KEY)
+  response = tavily_client.search(query)
+  
+  return response
