@@ -16,10 +16,12 @@ You should include as much information as possible. You are to output according 
 <output_instructions>
 You are to strictly output 2 items: Company Details and Job Details. You should output in the following JSON format:
 
+```json
 {{
-  Company_Details: str
-  Job_Details: str
+  "Company_Details": str
+  "Job_Details": str
 }}
+```
 </output_instructions>
 
 YOUR RESPONSE:
