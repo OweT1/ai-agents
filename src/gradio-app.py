@@ -33,7 +33,7 @@ with gr.Blocks(title="LangGraph Candidate Evaluator") as app:
       job_details = get_job_details_textbox(visible=False)
       
       submit_btn = get_submit_button()
-      app_workflow = get_app_workflow()
+      # app_workflow = get_app_workflow()
 
     with gr.Column():
       status = get_status_textbox()
