@@ -1,0 +1,19 @@
+  name: Sync to Hugging Face Spaces
+
+  on:
+    push:
+      branches:
+        - main # Or your desired branch
+
+  jobs:
+    deploy:
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v4
+        - name: Push to Hugging Face Space
+          env:
+            HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          run: |
+            git remote add space https://huggingface.co/spaces/<your_username>/<your_space_name>
+            git remote set-url space https://<your_username>:${HF_TOKEN}@huggingface.co/spaces/<your_username>/<your_space_name>
+            git push --force space main
