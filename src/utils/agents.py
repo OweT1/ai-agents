@@ -1,7 +1,7 @@
 from langgraph.prebuilt import create_react_agent
 from langgraph_supervisor import create_supervisor
 
-from utils.utils import (
+from src.utils.utils import (
    get_agent_prompt,
    validate_agent_type
 )

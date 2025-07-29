@@ -3,9 +3,9 @@ from PIL import Image
 import io
 import gradio as gr
 
-from utils.utils import parse_docx, parse_txt, parse_pdf
-from utils.agents import get_custom_agent
-from langgraph_workflow import get_agent_workflow
+from src.utils.utils import parse_docx, parse_txt, parse_pdf
+from src.utils.agents import get_custom_agent
+from src.langgraph_workflow import get_agent_workflow
 
 # --- Gradio Components --- #
 def get_candidate_file_input():

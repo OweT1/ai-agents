@@ -2,7 +2,7 @@ import gradio as gr
 from PIL import Image
 import numpy as np
 
-from helper import (
+from src.helper import (
   get_candidate_file_input,
   get_company_info_input_radio,
   get_job_listing_url_textbox,
