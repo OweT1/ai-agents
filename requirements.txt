@@ -13,5 +13,4 @@ gradio
 asyncio
 crawl4ai
 pydantic
-operator
 tavily-python

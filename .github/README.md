@@ -11,6 +11,7 @@ cp .env.template .env
 ```
 
 Mainly, you will need an API key from Mistral. To do so, you will need to create an account and organisation, and get an API Key at https://console.mistral.ai/api-keys.
+
 ~~To get an API Key from Anthropic, you will need to create an account and get an API Key at https://console.anthropic.com/settings/keys.~~
 
 ### Install necessary packages
@@ -34,7 +35,7 @@ After the above steps, the setup should be good to go.
 Primarily, you just need to start up the app by doing
 
 ```
-python src/gradio-app.py
+python app.py
 ```
 
 You should now be able to access the web app.
