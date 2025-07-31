@@ -1,3 +1,7 @@
+import subprocess
+
+subprocess.run(["crawl4ai-setup"], check=True)
+
 import gradio as gr
 from PIL import Image
 import numpy as np
