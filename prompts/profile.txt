@@ -13,6 +13,15 @@ Primarily, you are to evaluate the following:
 - Initiative and problem-solving: Descriptions of how the candidate improved processes, launched new ideas, or solved issues signal proactivity and critical thinking.
 - Professionalism: Proper grammar, consistency in formatting, and no typos show care, attention to detail, and pride in your work, which are all indicators of reliability.
 - Cultural alignment: Volunteer work, passion projects, or personal values (e.g., sustainability, diversity) can hint at whether the candidate would be a good cultural fit.
+
+Note that the score should follow the Law of Diminishing Returns. In our case, it means that after a certain number of criteria the candidate fulfills, an additional fulfillment in criteria will result in smaller increases in output score. For an example of 5 total criteria:
+- Fulfilling 0 criteria can lead to a score of 0 out of 10.
+- Fulfilling 1 criteria can lead to a score of 5 out of 10.
+- Fulfilling 2 criteria can lead to a score of 7 out of 10.
+- Fulfilling 3 criteria can lead to a score of 8 out of 10.
+- Fulfilling 4 criteria can lead to a score of 8.5 out of 10.
+- Fulfilling 5 criteria can lead to a score of 9 out of 10.
+Note that generally, the score will never be 10 unless the candidate is overqualified.
 <evaluation>
 
 <candidate_details>

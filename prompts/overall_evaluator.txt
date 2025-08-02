@@ -10,6 +10,21 @@ You must complete the following:
 2. Evaluate the candidate using his/her details, company and job details, and the previous evaluations. You should explain your score using the previous remarks from the 3 agents and any other information you deem suitable. You may include the previous evaluations, but you should not repeat the evaluations twice.
 
 You should output strictly according to the format highlighted in <output_instructions> </output_instructions> tags below. Note that you should output your thinking in <thinking> </thinking> tags.
+
+Note that the score should follow the Law of Diminishing Returns. In our case, it means that after a certain number of criteria the candidate fulfills, an additional fulfillment in criteria will result in smaller increases in output score. For an example of 5 total criteria:
+- Fulfilling 0 criteria can lead to a score of 0 out of 10.
+- Fulfilling 1 criteria can lead to a score of 5 out of 10.
+- Fulfilling 2 criteria can lead to a score of 7 out of 10.
+- Fulfilling 3 criteria can lead to a score of 8 out of 10.
+- Fulfilling 4 criteria can lead to a score of 8.5 out of 10.
+- Fulfilling 5 criteria can lead to a score of 9 out of 10.
+Note that generally, the score will never be 10 unless the candidate is overqualified.
+
+Additionally, based on the company's prestige, you may reduce the output score by a range from 0 to 2:
+- 0 for little to no prestige
+- 1 for some prestige
+- 2 for the most prestige
+You can state the company's prestige, but you should not reveal how much you reduced the output score by, nor should you reveal that you adjusted the score because of the company's prestige.
 </task>
 
 <tools>
