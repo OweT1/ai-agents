@@ -1,10 +1,11 @@
 import asyncio
-from pydantic import BaseModel
+from pydantic import BaseModel, PrivateAttr
 from typing import Annotated, Sequence
 from langgraph.graph import StateGraph, END
 from langgraph.prebuilt import ToolNode, tools_condition
 import operator
 import re
+from langchain_mistralai import ChatMistralAI
 
 from src.utils.tools import web_crawl, tavily_search
 from src.utils.utils import (
@@ -43,11 +44,17 @@ def merge_dict(a, b):
   for key, val in b.items():
     a[key] = val
   return a
+
 # --- Pydantic Models --- #
 class EvaluationState(BaseModel):
-  candidate_details: Annotated[str, merge_last]
+  model: Annotated[ChatMistralAI, merge_last]
+  
+  company_info_input_type: Annotated[str, merge_last]
+  job_url: Annotated[str, merge_last]
   company_details: Annotated[str, merge_last]
   job_details: Annotated[str, merge_last]
+  
+  candidate_details: Annotated[str, merge_last]
   evaluations: Annotated[dict[str, str], merge_dict]
   improvements: Annotated[dict[str, str], merge_dict]
   messages: Annotated[list[dict[str, str]], operator.add]
@@ -59,18 +66,19 @@ def should_go_to_improvement(state: EvaluationState):
     return "improvement"
 
 # --- LangGraph Nodes --- #
-def information_node(state: EvaluationState, job_url: str, company_details: str, job_details: str, company_info_input_type: str, model):
-  if company_info_input_type == "URL":
-    webpage_content = asyncio.run(web_crawl(job_url))
+async def information_node(state: EvaluationState):
+  if state.company_info_input_type == "URL":
+    webpage_content = await web_crawl(state.job_url)
     
     information_agent = get_custom_agent(
-      model=model,
+      model=state.model,
       agent_type="information",
       webpage_content=webpage_content
     )
     
-    result = information_agent.invoke(
-      {"content": f"Use the following webpage content to extract company and job details. Webpage Content: {webpage_content}"})
+    result = await information_agent.ainvoke(
+      {"content": f"Use the following webpage content to extract company and job details. Webpage Content: {webpage_content}"}
+    )
     result_json = extract_json(result['messages'][-1].content)
     print(result_json)
     
@@ -78,20 +86,20 @@ def information_node(state: EvaluationState, job_url: str, company_details: str,
     job_details = result_json['Job_Details']
   
   updated_state = state.dict()
-  updated_state["company_details"] = company_details
-  updated_state["job_details"] = job_details
+  updated_state["company_details"] = company_details or state.company_details
+  updated_state["job_details"] = job_details or state.job_details
   
   return EvaluationState(**updated_state)
   
-def experience_node(state: EvaluationState, model):
+async def experience_node(state: EvaluationState):
   experience_agent = get_custom_agent(
-    model=model,
+    model=state.model,
     agent_type="experience",
     candidate_details=state.candidate_details,
     company_details=state.company_details,
     job_details=state.job_details
   )
-  result = experience_agent.invoke(state.dict())
+  result = await experience_agent.ainvoke(state.dict())
   result_extracted = result['messages'][-1].content
   
   updated_state = state.dict()
@@ -102,16 +110,16 @@ def experience_node(state: EvaluationState, model):
   updated_state["evaluations"]["experience_evaluation"] = result_extracted
   return EvaluationState(**updated_state)
   
-def profile_node(state: EvaluationState, model):
+async def profile_node(state: EvaluationState):
   profile_agent = get_custom_agent(
-    model=model,
+    model=state.model,
     agent_type="profile",
     candidate_details=state.candidate_details,
     company_details=state.company_details,
     job_details=state.job_details
   )
   
-  result = profile_agent.invoke(state.dict())
+  result = await profile_agent.ainvoke(state.dict())
   result_extracted = result['messages'][-1].content
   
   updated_state = state.dict()
@@ -122,16 +130,16 @@ def profile_node(state: EvaluationState, model):
   updated_state["evaluations"]["profile_evaluation"] = result_extracted
   return EvaluationState(**updated_state)
   
-def skills_node(state: EvaluationState, model):
+async def skills_node(state: EvaluationState):
   skills_agent = get_custom_agent(
-    model=model,
+    model=state.model,
     agent_type="skills",
     candidate_details=state.candidate_details,
     company_details=state.company_details,
     job_details=state.job_details
   )
   
-  result = skills_agent.invoke(state.dict())
+  result = await skills_agent.ainvoke(state.dict())
   result_extracted = result['messages'][-1].content
   
   updated_state = state.dict()
@@ -142,9 +150,9 @@ def skills_node(state: EvaluationState, model):
   updated_state["evaluations"]["skills_evaluation"] = result_extracted
   return EvaluationState(**updated_state)
   
-def evaluator_node(state: EvaluationState, model):
+async def evaluator_node(state: EvaluationState):  
   evaluator_agent = get_custom_agent(
-    model=model,
+    model=state.model,
     agent_type="overall_evaluator",
     tools=[tavily_search],#, web_crawl],
     candidate_details=state.candidate_details,
@@ -153,7 +161,7 @@ def evaluator_node(state: EvaluationState, model):
     evaluations=collapse_dict_to_str(state.evaluations),
   )
 
-  result = evaluator_agent.invoke({
+  result = await evaluator_agent.ainvoke({
     "messages": state.messages + [{"role": "human", "content": "Evaluate based on previous evaluations and the provided instructions"}]
   })
   result_extracted = result['messages'][-1].content
@@ -174,9 +182,9 @@ def evaluator_node(state: EvaluationState, model):
   updated_state["evaluations"]["final_evaluation_remarks"] = final_evaluation_remarks
   return EvaluationState(**updated_state)
   
-def improvement_node(state: EvaluationState, model):
+async def improvement_node(state: EvaluationState):
   improvement_agent = get_custom_agent(
-    model=model,
+    model=state.model,
     agent_type="improvement",
     tools=[tavily_search],#, web_crawl],
     candidate_details=state.candidate_details,
@@ -185,7 +193,7 @@ def improvement_node(state: EvaluationState, model):
     evaluations=collapse_dict_to_str(state.evaluations),
   )
 
-  result = improvement_agent.invoke({
+  result = await improvement_agent.ainvoke({
     "messages": state.messages + [{"role": "human", "content": "Provide Areas of improvement based on previous evaluations and the provided instructions"}]
   })
   result_extracted = result['messages'][-1].content
@@ -201,22 +209,18 @@ def improvement_node(state: EvaluationState, model):
   return EvaluationState(**updated_state)
 
 # --- LangGraph Workflow --- #
-def get_agent_workflow(candidate_profile, job_url, company_details, job_details, company_info_input_type):
-  model = get_mistral_model("mistral-small-latest")
-  big_model = get_mistral_model()
-  tools=[tavily_search]#, web_crawl]
-  model_with_tools=big_model.bind_tools(tools)
+async def get_agent_workflow(tools):
   tools_node=ToolNode(tools)
   
   workflow = StateGraph(EvaluationState)
   
   # Define the nodes
-  workflow.add_node("information", lambda state: information_node(state, job_url, company_details, job_details, company_info_input_type, model))
-  workflow.add_node("skills", lambda state: skills_node(state, model))
-  workflow.add_node("experience", lambda state: experience_node(state, model))
-  workflow.add_node("profile", lambda state: profile_node(state, model))
-  workflow.add_node("evaluator", lambda state: evaluator_node(state, model_with_tools))
-  workflow.add_node("improvement", lambda state: improvement_node(state, model_with_tools))
+  workflow.add_node("information", information_node)
+  workflow.add_node("skills", skills_node)
+  workflow.add_node("experience", experience_node)
+  workflow.add_node("profile", profile_node)
+  workflow.add_node("evaluator", evaluator_node)
+  workflow.add_node("improvement", improvement_node)
   workflow.add_node("evaluator_tools", tools_node)
   workflow.add_node("improvement_tools", tools_node)
   

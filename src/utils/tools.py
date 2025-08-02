@@ -57,7 +57,7 @@ async def web_crawl(web_url: str) -> str:
     return result.markdown
 
 @tool
-def tavily_search(query: str) -> str:
+async def tavily_search(query: str) -> str:
   """
   Performs a search using the query to get relevant information from the web.
 

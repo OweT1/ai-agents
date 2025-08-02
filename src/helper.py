@@ -2,10 +2,18 @@ import os
 from PIL import Image
 import io
 import gradio as gr
+import asyncio
 
-from src.utils.utils import parse_docx, parse_txt, parse_pdf
+from src.utils.utils import (
+  parse_docx,
+  parse_txt,
+  parse_pdf,
+  get_mistral_model
+)
+from src.utils.tools import web_crawl, tavily_search
 from src.utils.agents import get_custom_agent
 from src.langgraph_workflow import get_agent_workflow
+
 
 # --- Gradio Components --- #
 def get_candidate_file_input():
@@ -66,25 +74,34 @@ def change_company_info_input(choice):
   )
 
 # --- Submit Button / Evaluation Functions --- #
-def call_evaluation(candidate_profile, job_url, company_details, job_details, company_info_input_type):
-  app = get_agent_workflow(candidate_profile, job_url, company_details, job_details, company_info_input_type)
+async def call_evaluation(candidate_profile, job_url, company_details, job_details, company_info_input_type):
+  model = get_mistral_model("mistral-small-latest")
+  big_model = get_mistral_model("mistral-small-latest")
+  tools=[tavily_search]#, web_crawl]
+
+  app = await get_agent_workflow(tools)
   
   system_message = "Evaluate whether the candidate is suitable for the job at the company."
   
-  result = app.invoke({
+  result = await app.ainvoke({
+    "model": model,
+    
+    "company_info_input_type": company_info_input_type,
+    "job_url": job_url,
+    "company_details": company_details,
+    "job_details": job_details,
+    
     "candidate_details": candidate_profile,
-    "company_details": "",
-    "job_details": "",
     "evaluations": {},
     "improvements": {},
     "messages": []
   })
   return result
 
-def generate_response(candidate_file, job_url, company_details, job_details, company_info_input_type):
+async def generate_response(candidate_file, job_url, company_details, job_details, company_info_input_type):
   candidate_profile = parse_data_file(candidate_file)
   yield "🟡 Processing with LangGraph...", "", "", "", ""
-  response = call_evaluation(candidate_profile, job_url, company_details, job_details, company_info_input_type)
+  response = await call_evaluation(candidate_profile, job_url, company_details, job_details, company_info_input_type)
   response_evaluations = response["evaluations"]
   response_improvements = response["improvements"]
   
